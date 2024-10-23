@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Resume Builder App</title>
+    <link rel="stylesheet" type="text/css" href="resumestyle.css" />
+    <link rel="stylesheet" type="text/css" href="resumestyle2.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Resume Builder</h1>
+      <form id="resumeForm">
+        <label for="name">Name:</label>
+        <input type="text" id="name" required />
+        <label for="photo">Photo:</label>
+        <input type="file" id="photo" accept="image/*" required />
+        <label for="address">Address:</label>
+        <textarea id="address" required></textarea>
+        <label for="birthdate">Date of Birth:</label>
+        <input type="date" id="birthdate" required />
+        <label for="qualifications">Qualifications:</label>
+        <textarea id="qualifications" required></textarea>
+        <label for="experience">Experience:</label>
+        <textarea id="experience" required></textarea>
+        <label for="activities">Activities:</label>
+        <textarea id="activities" required></textarea>
+        <label for="achievements">Achievements:</label>
+        <textarea id="achievements" required></textarea>
+        <label for="linkedin">LinkedIn:</label>
+        <input type="url" id="linkedin" required />
+        <label for="facebook">Facebook:</label>
+        <input type="url" id="facebook" required />
+        <label for="github">GitHub:</label>
+        <input type="url" id="github" required />
+        <button type="button" onclick="generateResume()">Generate Resume</button>
+      </form>
+      <div id="resume" style="display: none">
+        <div id="resumeData"></div>
+        <img id="resumePhoto" src="" />
+        <button onclick="downloadPDF()">Download as PDF</button>
+      </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+      function generateResume() {
+        const name = document.getElementById("name").value;
+        const photo = document.getElementById("photo").files[0];
+        const address = document.getElementById("address").value;
+        const birthdate = document.getElementById("birthdate").value;
+        const qualifications = convertToTable("S.No, Qualification, Year","qualifications");
+        const experience = convertToList("experience");
+        const activities = convertToList("activities");
+        const achievements = convertToList("achievements");
+        const linkedin = document.getElementById("linkedin").value;
+        const facebook = document.getElementById("facebook").value;
+        const github = document.getElementById("github").value;
+        var photoURL;
+        if (photo) photoURL = URL.createObjectURL(photo);
+        else photoURL = "logo.jpeg";
+        var data = templateString(
+          name,photoURL,
+          address,
+          birthdate,
+          qualifications,
+          experience,
+          activities,
+          achievements,
+          linkedin,
+          facebook,
+          github
+        );
+        document.getElementById("resumeData").innerHTML = data;
+        document.getElementById("resume").style.display = "block";
+      }
+      function convertToTable(columns, fieldName) {
+        field = document.getElementById(fieldName).value.trim();
+        const data = columns.concat("\n").concat(field);
+        const lines = data.trim().split("\n");
+        let result = "";
+        lines.forEach((line, index) => {
+          const cells = line.split(",");
+          result += "<tr>";
+          cells.forEach((cell) => {
+            result += `<td>${cell.trim()}</td>`;
+          });
+          result += "</tr>";
+        });
+        return result;
+      }
+      function convertToList(fieldName) {
+        const data = document.getElementById(fieldName).value.trim();
+        const lines = data.split("\n");
+        let list = "";
+        lines?.forEach((line) => {
+          const data = "<li>" + line.trim() + "</li>";
+          list += data;
+        });
+        return list;
+      }
+      function templateString(
+        name,
+        photoURL,
+        address,
+        birthdate,
+        qualifications,
+        experience,
+        activities,
+        achievements,
+        linkedin,
+        facebook,
+        github
+      ) {
+        const data = `<div class="container">
+                    <div class="header">
+                        <img src = "${photoURL}"alt="${name}" title="${name}">
+                        <h1>${name}</h1><p>${address}</p>
+                        <p>Date of Birth:${birthdate}</p></div>
+                    <div class="info-section">
+                        <h2>Qualification</h2><table>${qualifications}</table>
+                    </div>
+                    <div class="info-section">
+                        <h2>Work Experience</h2><ul>${experience}</ul>
+                    </div>
+                    <div class="info-section">
+                        <h2>Curricular Activities</h2><ul>${activities}</ul>
+                    </div>
+                    <div class="info-section">
+                        <h2>Achievements</h2><ul>${achievements}</ul>
+                    </div>
+                    <div class="links">
+                        <h2>Connect with me:</h2>
+                        <a href="${linkedin}" target="_blank">LinkedIn</a>
+                        <a href="${facebook}" target="_blank">Facebook</a>
+                        <a href="${github}" target="_blank">GitHub</a>
+                        </div>
+                        </div>`;
+        return data;
+      }
+
+      function downloadPDF() {
+        window.jsPDF = window.jspdf.jsPDF;
+        alert("pd1");
+        let jsPdf = new jsPDF('p','pt','letter');
+        var htmlElement = document.getElementById("resume");
+        const opt = {
+          callback: function (jsPdf) {
+            jsPdf.save("resume.pdf");
+          },
+          margin: [30, 30, 50, 50],
+          autoPaging:'text',
+          html2canvas: {
+            allowTaint: true,
+            dpi:300,
+            letterRendering:true,
+            logging: false,
+            scale:.5
+          }
+        };
+        jsPdf.html(htmlElement,opt);
+      }
+    </script>
+  </body>
+</html>
